@@ -214,8 +214,17 @@ def create_checkout():
         response.headers.add('Access-Control-Allow-Methods', 'POST')
         return response
     
+    print('=== CREATE CHECKOUT SESSION CALLED ===')
+    print('STRIPE_SECRET_KEY exists:', bool(STRIPE_SECRET_KEY))
+    print('STRIPE_SECRET_KEY starts with:', STRIPE_SECRET_KEY[:10] if STRIPE_SECRET_KEY else 'None')
+    print('stripe object:', stripe)
+    print('stripe type:', type(stripe))
+    
     data = request.get_json()
+    print('Received data:', data)
+    
     try:
+        print('Creating Stripe session...')
         session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
