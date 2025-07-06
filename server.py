@@ -26,24 +26,37 @@ CORS(app)
 
 def get_gspread_client():
     print('=== GET_GSPREAD_CLIENT CALLED ===')
-    # Get service account credentials from environment variable
-    service_account_json = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON')
-    print('Service account JSON exists:', bool(service_account_json))
-    
-    if not service_account_json:
-        raise Exception("GOOGLE_SERVICE_ACCOUNT_JSON environment variable not set")
-    
     try:
+        # Get service account credentials from environment variable
+        service_account_json = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON')
+        print('Service account JSON exists:', bool(service_account_json))
+        print('Service account JSON length:', len(service_account_json) if service_account_json else 0)
+        
+        if not service_account_json:
+            print('ERROR: GOOGLE_SERVICE_ACCOUNT_JSON environment variable not set')
+            raise Exception("GOOGLE_SERVICE_ACCOUNT_JSON environment variable not set")
+        
+        print('Attempting to parse JSON...')
         creds_dict = json.loads(service_account_json)
         print('JSON parsed successfully')
+        print('JSON keys:', list(creds_dict.keys()) if creds_dict else 'None')
+        
+        print('Creating credentials...')
         creds = Credentials.from_service_account_info(creds_dict, scopes=['https://www.googleapis.com/auth/spreadsheets'])
         print('Credentials created successfully')
         
+        print('Authorizing gspread client...')
         client = gspread.authorize(creds)
         print('GSpread client authorized successfully')
         return client
+    except json.JSONDecodeError as e:
+        print('ERROR: Invalid JSON in GOOGLE_SERVICE_ACCOUNT_JSON:', str(e))
+        raise e
     except Exception as e:
-        print('Error in get_gspread_client:', str(e))
+        print('ERROR in get_gspread_client:', str(e))
+        print('Error type:', type(e))
+        import traceback
+        print('Full traceback:', traceback.format_exc())
         raise e
 
 def get_worksheet(sheet_id, sheet_name):
@@ -144,8 +157,15 @@ def submit_form():
     
     try:
         print('Getting worksheet...')
-        ws = get_worksheet(GOOGLE_SHEET1_ID, 'Sheet1')
-        print('Worksheet obtained successfully')
+        try:
+            ws = get_worksheet(GOOGLE_SHEET1_ID, 'Sheet1')
+            print('Worksheet obtained successfully')
+        except Exception as worksheet_error:
+            print('ERROR getting worksheet:', str(worksheet_error))
+            print('Worksheet error type:', type(worksheet_error))
+            import traceback
+            print('Worksheet error traceback:', traceback.format_exc())
+            return jsonify({'success': False, 'message': f'Google Sheets error: {str(worksheet_error)}'}), 500
         
         # Prepara i dati
         formattedTimestamp = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
@@ -253,7 +273,7 @@ def payment_success():
         print('Error processing payment success:', e)
         return jsonify({'success': False, 'message': str(e)}), 500
 
-# --- MAIN -----
+# --- MAIN ---
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 10000))) 
