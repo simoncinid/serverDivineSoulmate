@@ -253,7 +253,7 @@ def payment_success():
         print('Error processing payment success:', e)
         return jsonify({'success': False, 'message': str(e)}), 500
 
-# --- MAIN ---
+# --- MAIN -----
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 10000))) 
