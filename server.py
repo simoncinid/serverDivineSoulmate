@@ -3,6 +3,7 @@ import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import stripe
+import stripe.checkout
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
@@ -18,6 +19,7 @@ STRIPE_PRICE_ID = os.environ.get('STRIPE_PRICE_ID')
 # Stripe
 print('=== STRIPE INITIALIZATION ===')
 print('stripe module:', stripe)
+print('stripe.checkout module:', stripe.checkout)
 print('STRIPE_SECRET_KEY:', STRIPE_SECRET_KEY)
 stripe.api_key = STRIPE_SECRET_KEY
 print('stripe.api_key after assignment:', getattr(stripe, 'api_key', 'no api_key'))
