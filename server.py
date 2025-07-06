@@ -215,10 +215,10 @@ def create_checkout():
         return response
     
     print('=== CREATE CHECKOUT SESSION CALLED ===')
-    print('STRIPE_SECRET_KEY exists:', bool(STRIPE_SECRET_KEY))
-    print('STRIPE_SECRET_KEY starts with:', STRIPE_SECRET_KEY[:10] if STRIPE_SECRET_KEY else 'None')
     print('stripe object:', stripe)
-    print('stripe type:', type(stripe))
+    print('stripe.api_key:', getattr(stripe, "api_key", "no api_key"))
+    print('stripe.checkout:', getattr(stripe, "checkout", "no checkout"))
+    print('stripe.checkout.Session:', getattr(getattr(stripe, "checkout", None), "Session", "no Session"))
     
     data = request.get_json()
     print('Received data:', data)
@@ -247,9 +247,12 @@ def create_checkout():
             success_url=data.get('successUrl', 'https://divinesoulmate.vercel.app/success?session_id={CHECKOUT_SESSION_ID}'),
             cancel_url=data.get('cancelUrl', 'https://divinesoulmate.vercel.app/cancel'),
         )
+        print('Stripe session created:', session)
         return jsonify({'url': session.url})
     except Exception as e:
         print('Error creating Stripe session:', e)
+        import traceback
+        print('Full traceback:', traceback.format_exc())
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/payment-success', methods=['POST', 'OPTIONS'])
