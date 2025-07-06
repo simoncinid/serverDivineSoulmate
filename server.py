@@ -25,15 +25,26 @@ CORS(app)
 # --- Google Sheets Setup ---
 
 def get_gspread_client():
+    print('=== GET_GSPREAD_CLIENT CALLED ===')
     # Get service account credentials from environment variable
     service_account_json = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON')
+    print('Service account JSON exists:', bool(service_account_json))
+    
     if not service_account_json:
         raise Exception("GOOGLE_SERVICE_ACCOUNT_JSON environment variable not set")
     
-    creds_dict = json.loads(service_account_json)
-    creds = Credentials.from_service_account_info(creds_dict, scopes=['https://www.googleapis.com/auth/spreadsheets'])
-    
-    return gspread.authorize(creds)
+    try:
+        creds_dict = json.loads(service_account_json)
+        print('JSON parsed successfully')
+        creds = Credentials.from_service_account_info(creds_dict, scopes=['https://www.googleapis.com/auth/spreadsheets'])
+        print('Credentials created successfully')
+        
+        client = gspread.authorize(creds)
+        print('GSpread client authorized successfully')
+        return client
+    except Exception as e:
+        print('Error in get_gspread_client:', str(e))
+        raise e
 
 def get_worksheet(sheet_id, sheet_name):
     gc = get_gspread_client()
@@ -44,9 +55,15 @@ def get_worksheet(sheet_id, sheet_name):
 
 @app.route('/api/submit-form', methods=['POST'])
 def submit_form():
+    print('=== SUBMIT FORM CALLED ===')
     data = request.get_json()
+    print('Received data:', data)
+    
     try:
+        print('Getting worksheet...')
         ws = get_worksheet(GOOGLE_SHEET1_ID, 'Sheet1')
+        print('Worksheet obtained successfully')
+        
         # Prepara i dati
         formattedTimestamp = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
         formattedBirthDate = data.get('birthDate', '')
@@ -62,10 +79,16 @@ def submit_form():
             data.get('email', ''),       # I: Email
             'LEAD'                       # J: Status
         ]
+        print('Values to insert:', values)
+        
         ws.append_row(values)
+        print('Row appended successfully')
         return jsonify({'success': True, 'message': 'Form submitted successfully'})
     except Exception as e:
-        print('Error submitting to Google Sheets:', e)
+        print('Error submitting to Google Sheets:', str(e))
+        print('Error type:', type(e))
+        import traceback
+        print('Full traceback:', traceback.format_exc())
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/create-checkout-session', methods=['POST'])
@@ -115,6 +138,7 @@ def payment_success():
             purchaseDate,                # A: Data acquisto
             purchaseTime,                # B: Orario
             session.id,                  # C: Codice acquisto
+            '',
             'Divine Soulmate Reading',   # D: Nome prodotto
             1,                           # E: Quantità
             '', '', '', '', '',          # F-J: Colonne vuote
