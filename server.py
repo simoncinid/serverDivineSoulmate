@@ -16,7 +16,13 @@ STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_PRICE_ID = os.environ.get('STRIPE_PRICE_ID')
 
 # Stripe
+print('=== STRIPE INITIALIZATION ===')
+print('stripe module:', stripe)
+print('STRIPE_SECRET_KEY:', STRIPE_SECRET_KEY)
 stripe.api_key = STRIPE_SECRET_KEY
+print('stripe.api_key after assignment:', getattr(stripe, 'api_key', 'no api_key'))
+print('stripe.checkout:', getattr(stripe, 'checkout', 'no checkout'))
+print('stripe.checkout.Session:', getattr(getattr(stripe, 'checkout', None), 'Session', 'no Session'))
 
 # Flask
 app = Flask(__name__)
