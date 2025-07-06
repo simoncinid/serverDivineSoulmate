@@ -1,0 +1,5 @@
+Flask
+flask-cors
+stripe
+gspread
+google-auth
