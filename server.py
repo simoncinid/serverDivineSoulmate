@@ -135,8 +135,12 @@ def submit_form():
         return response
     
     print('=== SUBMIT FORM CALLED ===')
-    data = request.get_json()
-    print('Received data:', data)
+    try:
+        data = request.get_json()
+        print('Received data:', data)
+    except Exception as e:
+        print('ERROR parsing JSON:', str(e))
+        return jsonify({'success': False, 'message': f'Invalid JSON: {str(e)}'}), 400
     
     # Validazione dei dati
     if not data:
@@ -193,6 +197,12 @@ def submit_form():
         import traceback
         print('Full traceback:', traceback.format_exc())
         return jsonify({'success': False, 'message': str(e)}), 500
+    except Exception as global_error:
+        print('GLOBAL ERROR in submit_form:', str(global_error))
+        print('Global error type:', type(global_error))
+        import traceback
+        print('Global error traceback:', traceback.format_exc())
+        return jsonify({'success': False, 'message': f'Server error: {str(global_error)}'}), 500
 
 @app.route('/api/create-checkout-session', methods=['POST', 'OPTIONS'])
 def create_checkout():
@@ -272,6 +282,17 @@ def payment_success():
     except Exception as e:
         print('Error processing payment success:', e)
         return jsonify({'success': False, 'message': str(e)}), 500
+
+# --- ERROR HANDLERS ---
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    print('=== UNHANDLED EXCEPTION ===')
+    print('Exception:', str(e))
+    print('Exception type:', type(e))
+    import traceback
+    print('Full traceback:', traceback.format_exc())
+    return jsonify({'success': False, 'message': f'Server error: {str(e)}'}), 500
 
 # --- MAIN ---
 
