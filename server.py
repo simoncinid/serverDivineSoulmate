@@ -240,18 +240,8 @@ def create_checkout():
                 'quantity': 1,
             }],
             mode='payment',
-            customer_email=data.get('email'),
-            metadata={
-                'firstName': data.get('firstName', ''),
-                'lastName': data.get('lastName', ''),
-                'email': data.get('email', ''),
-                'gender': data.get('gender', ''),
-                'birthDate': data.get('birthDate', ''),
-                'zodiacSign': data.get('zodiacSign', ''),
-                'country': data.get('country', ''),
-                'city': data.get('city', ''),
-                'timestamp': datetime.now().isoformat()
-            },
+            customer_email=data.get('customerEmail'),
+            metadata=data.get('metadata', {}),
             success_url=data.get('successUrl', 'https://divinesoulmate.vercel.app/success?session_id={CHECKOUT_SESSION_ID}'),
             cancel_url=data.get('cancelUrl', 'https://divinesoulmate.vercel.app/cancel'),
         )
@@ -287,6 +277,7 @@ def payment_success():
             purchaseDate,                # A: Data acquisto
             purchaseTime,                # B: Orario
             session.id,                  # C: Codice acquisto
+            '',
             'Divine Soulmate Reading',   # D: Nome prodotto
             1,                           # E: Quantità
             '', '', '', '', '',          # F-J: Colonne vuote
